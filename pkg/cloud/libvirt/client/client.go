@@ -85,7 +85,7 @@ type CreateVolumeInput struct {
 }
 
 // LibvirtClientBuilderFuncType is function type for building aws client
-type LibvirtClientBuilderFuncType func(URI string, poolName string) (Client, error)
+type LibvirtClientBuilderFuncType func(URI string, auth *LibvirtConnectAuth, poolName string) (Client, error)
 
 // Client is a wrapper object for actual libvirt library to allow for easier testing.
 type Client interface {
@@ -120,8 +120,14 @@ type Client interface {
 	LookupDomainHostnameByDHCPLease(domIPAddress string, networkName string) (string, error)
 }
 
+type LibvirtConnectAuth struct {
+	SshPrivateKey string
+}
+
 type libvirtClient struct {
 	connection *libvirt.Connect
+
+	authData *LibvirtConnectAuth
 
 	// storage pool that holds all volumes
 	pool *libvirt.StoragePool
@@ -132,7 +138,9 @@ type libvirtClient struct {
 var _ Client = &libvirtClient{}
 
 // NewClient returns libvirt client for the specified URI
-func NewClient(URI string, poolName string) (Client, error) {
+func NewClient(URI string, auth *LibvirtConnectAuth, poolName string) (Client, error) {
+	// TODO: Append auth parameters to libvirt URI
+	// https://libvirt.org/uri.html#Remote_URI_parameters
 	connection, err := libvirt.NewConnect(URI)
 	if err != nil {
 		return nil, err

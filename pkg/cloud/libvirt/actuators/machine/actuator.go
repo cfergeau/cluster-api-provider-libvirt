@@ -120,7 +120,8 @@ func (a *Actuator) Create(context context.Context, cluster *clusterv1.Cluster, m
 		return a.handleMachineError(machine, apierrors.InvalidMachineConfiguration("error getting machineProviderConfig from spec: %v", err), createEventAction)
 	}
 
-	client, err := a.clientBuilder(machineProviderConfig.URI, machineProviderConfig.Volume.PoolName)
+	libvirtAuth := getLibvirtAuth(machineProviderConfig)
+	client, err := a.clientBuilder(machineProviderConfig.URI, libvirtAuth, machineProviderConfig.Volume.PoolName)
 	if err != nil {
 		return a.handleMachineError(machine, apierrors.CreateMachine("error creating libvirt client: %v", err), createEventAction)
 	}
@@ -166,7 +167,8 @@ func (a *Actuator) Delete(context context.Context, cluster *clusterv1.Cluster, m
 		return a.handleMachineError(machine, apierrors.InvalidMachineConfiguration("error getting machineProviderConfig from spec: %v", err), deleteEventAction)
 	}
 
-	client, err := a.clientBuilder(machineProviderConfig.URI, machineProviderConfig.Volume.PoolName)
+	libvirtAuth := getLibvirtAuth(machineProviderConfig)
+	client, err := a.clientBuilder(machineProviderConfig.URI, libvirtAuth, machineProviderConfig.Volume.PoolName)
 	if err != nil {
 		return a.handleMachineError(machine, apierrors.DeleteMachine("error creating libvirt client: %v", err), deleteEventAction)
 	}
@@ -194,7 +196,8 @@ func (a *Actuator) Update(context context.Context, cluster *clusterv1.Cluster, m
 		return a.handleMachineError(machine, apierrors.InvalidMachineConfiguration("error getting machineProviderConfig from spec: %v", err), updateEventAction)
 	}
 
-	client, err := a.clientBuilder(machineProviderConfig.URI, machineProviderConfig.Volume.PoolName)
+	libvirtAuth := getLibvirtAuth(machineProviderConfig)
+	client, err := a.clientBuilder(machineProviderConfig.URI, libvirtAuth, machineProviderConfig.Volume.PoolName)
 	if err != nil {
 		return a.handleMachineError(machine, apierrors.UpdateMachine("error creating libvirt client: %v", err), updateEventAction)
 	}
@@ -217,6 +220,10 @@ func (a *Actuator) Update(context context.Context, cluster *clusterv1.Cluster, m
 	return nil
 }
 
+func getLibvirtAuth(machineProviderConfig *providerconfigv1.LibvirtMachineProviderConfig) *libvirtclient.LibvirtConnectAuth {
+	return &libvirtclient.LibvirtConnectAuth{SshPrivateKey: machineProviderConfig.SshPrivateKey}
+}
+
 // Exists test for the existance of a machine and is invoked by the Machine Controller
 func (a *Actuator) Exists(context context.Context, cluster *clusterv1.Cluster, machine *machinev1.Machine) (bool, error) {
 	glog.Infof("Checking if machine %v exists.", machine.Name)
@@ -227,7 +234,8 @@ func (a *Actuator) Exists(context context.Context, cluster *clusterv1.Cluster, m
 		return false, a.handleMachineError(machine, apierrors.InvalidMachineConfiguration("error getting machineProviderConfig from spec: %v", err), noEventAction)
 	}
 
-	client, err := a.clientBuilder(machineProviderConfig.URI, machineProviderConfig.Volume.PoolName)
+	libvirtAuth := getLibvirtAuth(machineProviderConfig)
+	client, err := a.clientBuilder(machineProviderConfig.URI, libvirtAuth, machineProviderConfig.Volume.PoolName)
 	if err != nil {
 		return false, errWrapper.WithLog(err, "error creating libvirt client")
 	}

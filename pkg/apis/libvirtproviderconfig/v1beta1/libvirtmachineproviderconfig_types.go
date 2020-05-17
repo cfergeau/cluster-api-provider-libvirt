@@ -33,6 +33,7 @@ type LibvirtMachineProviderConfig struct {
 	NetworkUUID              string     `json:"networkUUID"`
 	Autostart                bool       `json:"autostart"`
 	URI                      string     `json:"uri"`
+	SshPrivateKey            string     `json:"sshPrivateKey,omitempty"`
 }
 
 // Ignition contains location of ignition to be run during bootstrapping
