@@ -9,7 +9,10 @@ import (
 	libvirtxml "github.com/libvirt/libvirt-go-xml"
 	providerconfigv1 "github.com/openshift/cluster-api-provider-libvirt/pkg/apis/libvirtproviderconfig/v1beta1"
 
+	machineapiapierrors "github.com/openshift/cluster-api/pkg/errors"
+	apimachineryerrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/resource"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 )
 
@@ -85,7 +88,7 @@ type CreateVolumeInput struct {
 }
 
 // LibvirtClientBuilderFuncType is function type for building aws client
-type LibvirtClientBuilderFuncType func(URI string, auth *LibvirtConnectAuth, poolName string) (Client, error)
+type LibvirtClientBuilderFuncType func(kubeClient kubernetes.Interface, URI string, secretName, namespace, poolName string) (Client, error)
 
 // Client is a wrapper object for actual libvirt library to allow for easier testing.
 type Client interface {
@@ -137,9 +140,24 @@ type libvirtClient struct {
 
 var _ Client = &libvirtClient{}
 
+const (
+	LibvirtCredsSshPrivateKey = "ssh_private_key"
+)
+
 // NewClient returns libvirt client for the specified URI
-func NewClient(URI string, auth *LibvirtConnectAuth, poolName string) (Client, error) {
-	// TODO: Append auth parameters to libvirt URI
+func NewClient(kubeClient kubernetes.Interface, URI string, secretName string, namespace string, poolName string) (Client, error) {
+	if secretName != "" {
+		_, err := kubeClient.CoreV1().Secrets(namespace).Get(secretName, metav1.GetOptions{})
+		if err != nil {
+			if apimachineryerrors.IsNotFound(err) {
+				return nil, machineapiapierrors.InvalidMachineConfiguration("libvirt credentials secret %s/%s: %v not found", namespace, secretName, err)
+			}
+			return nil, err
+		}
+		//TODO: This needs to be mapped as a file
+		//secret.Data[LibvirtCredsSshPrivateKey]
+	}
+	// TODO: Append creds as parameters to libvirt URI
 	// https://libvirt.org/uri.html#Remote_URI_parameters
 	connection, err := libvirt.NewConnect(URI)
 	if err != nil {

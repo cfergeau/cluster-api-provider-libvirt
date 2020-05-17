@@ -33,7 +33,9 @@ type LibvirtMachineProviderConfig struct {
 	NetworkUUID              string     `json:"networkUUID"`
 	Autostart                bool       `json:"autostart"`
 	URI                      string     `json:"uri"`
-	SshPrivateKey            string     `json:"sshPrivateKey,omitempty"`
+	// CredentialsSecret is a reference to the secret with libvirt credentials. Otherwise, the provider
+	// will expect to be able to connect to libvirt without any authentication
+	CredentialsSecret *corev1.LocalObjectReference `json:"credentialsSecret,omitempty"`
 }
 
 // Ignition contains location of ignition to be run during bootstrapping
