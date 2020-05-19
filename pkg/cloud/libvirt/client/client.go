@@ -158,6 +158,20 @@ func NewClient(kubeClient kubernetes.Interface, URI string, secretName string, n
 		//secret.Data[LibvirtCredsSshPrivateKey]
 	}
 	// TODO: Append creds as parameters to libvirt URI
+	// apiVersion: apps/v1
+	// kind: Deployment
+	// spec:
+	//   template:
+	//    spec:
+	//      containers:
+	//      - volumeMounts:
+	//        - mountPath: /etc/libvirt/credentials/ssh
+	//          name: libvirt-credentials
+	//      volume:
+	//      - name: libvirt-credentials
+	//        secret:
+	//          secretName: libvirt-credentials
+
 	// https://libvirt.org/uri.html#Remote_URI_parameters
 	connection, err := libvirt.NewConnect(URI)
 	if err != nil {
