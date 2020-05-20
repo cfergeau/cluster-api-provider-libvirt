@@ -550,6 +550,7 @@ func (client *libvirtClient) DeleteVolume(name string) error {
 	return nil
 }
 
+// This may also be implementable with https://libvirt.org/html/libvirt-libvirt-domain.html#virDomainInterfaceAddresses
 // GetDHCPLeasesByNetwork returns all network DHCP leases by network name
 func (client *libvirtClient) GetDHCPLeasesByNetwork(networkName string) ([]libvirt.NetworkDHCPLease, error) {
 	network, err := client.connection.LookupNetworkByName(networkName)
