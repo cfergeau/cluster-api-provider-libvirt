@@ -12,7 +12,7 @@ metadata:
 spec:
   providerSpec:
     value:
-      apiVersion: libvirtproviderconfig/v1alpha1
+      apiVersion: libvirtproviderconfig/v1beta1
       kind: LibvirtMachineProviderConfig
       domainMemory: 2048
       domainVcpu: 1
